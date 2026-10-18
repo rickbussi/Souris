@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Souris.App.MainWindow"
+        Title="Souris"
+        Width="480"
+        Height="280"
+        MinWidth="360"
+        MinHeight="220"
+        WindowStartupLocation="CenterScreen">
+  <Grid>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10">
+      <TextBlock Text="Bienvenue dans Souris !"
+                 FontSize="28"
+                 FontWeight="SemiBold"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="Votre application est prête."
+                 FontSize="16"
+                 Opacity="0.7"
+                 HorizontalAlignment="Center" />
+    </StackPanel>
+  </Grid>
+</Window>
