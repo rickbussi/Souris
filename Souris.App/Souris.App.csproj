@@ -12,6 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Content/Tutoriel.md" />
+    <AvaloniaResource Include="Assets/cappuccino-heart.png" />
+    <AvaloniaResource Include="Assets/suv-gris.png" />
+    <AvaloniaResource Include="Assets/ballon-plage.png" />
+    <AvaloniaResource Include="Assets/cavalier-echecs.png" />
+    <None Update="Assets/souris-icon.png" CopyToPublishDirectory="PreserveNewest" TargetPath="souris-icon.png" />
+    <None Include="../publish-linux.sh" Link="publish-linux.sh" CopyToPublishDirectory="PreserveNewest" />
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
