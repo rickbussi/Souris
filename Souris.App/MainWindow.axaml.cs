@@ -308,9 +308,9 @@ public partial class MainWindow : Window
         var instructions = new[]
         {
             "Réaliser ces trois instructions pour passer à la section suivante.",
-            "Fais un clic droit sur l’image, puis choisis « Ouvrir » dans le menu.",
             "Double-clique sur le dossier « Images » pour l’ouvrir.",
             "Fais glisser le fichier « ballon.jpg » sur le dossier « Images », puis relâche.",
+            "Fais un clic droit sur l’image, puis choisis « Ouvrir » dans le menu.",
             "Sélectionne les mots « petite barre » dans la phrase.",
             $"Clique sur le bon bouton pour {hoverTarget}. Utilise l’info-bulle pour te guider."
         };
@@ -351,9 +351,9 @@ public partial class MainWindow : Window
         var scene = _sectionIndex switch
         {
             0 => BuildClickSynonymsExercise(),
-            1 => BuildRightClickExercise(),
-            2 => BuildDoubleClickExercise(),
-            3 => BuildDragExercise(),
+            1 => BuildDoubleClickExercise(),
+            2 => BuildDragExercise(),
+            3 => BuildRightClickExercise(),
             4 => BuildTextSelectionExercise(),
             _ => BuildHoverExercise(hoverActions, hoverTarget)
         };

@@ -4,6 +4,9 @@ namespace Souris.App;
 
 internal static class ProgressStore
 {
+    private const int CurrentVersion = 2;
+    private sealed record ProgressData(int Version, int[] Completed);
+
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "Souris", "progression.json");
@@ -12,8 +15,27 @@ internal static class ProgressStore
     {
         try
         {
-            return File.Exists(FilePath)
-                ? new HashSet<int>(JsonSerializer.Deserialize<int[]>(File.ReadAllText(FilePath)) ?? [])
+            if (!File.Exists(FilePath)) return [];
+
+            var json = File.ReadAllText(FilePath);
+            using var document = JsonDocument.Parse(json);
+            if (document.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                // Les anciens numéros suivaient : clic gauche, clic droit,
+                // double clic, glisser-déposer, sélection de texte, info-bulle.
+                var oldIndexes = JsonSerializer.Deserialize<int[]>(json) ?? [];
+                return new HashSet<int>(oldIndexes.Select(index => index switch
+                {
+                    1 => 3,
+                    2 => 1,
+                    3 => 2,
+                    _ => index
+                }));
+            }
+
+            var progress = JsonSerializer.Deserialize<ProgressData>(json);
+            return progress?.Version == CurrentVersion
+                ? new HashSet<int>(progress.Completed ?? [])
                 : [];
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
@@ -27,7 +49,8 @@ internal static class ProgressStore
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(completed.Order()));
+            File.WriteAllText(FilePath, JsonSerializer.Serialize(
+                new ProgressData(CurrentVersion, completed.Order().ToArray())));
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

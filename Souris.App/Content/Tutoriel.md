@@ -1,6 +1,6 @@
 # Clic gauche
 
-Tu as probablement utilisé un clic pour arriver jusqu’à cet écran.
+Pour arriver jusqu'à cet écran, il a fallu probablement utiliser la souris et faire un clic.
 
 La petite flèche à l’écran est le **pointeur**. Elle suit la souris et montre où tu vas cliquer.
 
@@ -15,14 +15,6 @@ Dans une consigne, **« clique »** veut généralement dire **« fais un clic g
 - **Active**, **valide** ou **confirme** avec un bouton.
 
 Le geste reste le même : **placer le pointeur, appuyer une fois, puis relâcher**. Ce qui se passe ensuite dépend de l’endroit où tu as cliqué.
-
-# Clic droit
-
-Un **clic droit** est une courte pression sur le bouton droit de la souris. Il sert souvent à afficher une liste d’actions possibles.
-
-Cette liste s’appelle un **menu contextuel**. Par exemple, le menu d’une image ou d’un fichier peut proposer de l’ouvrir, de le renommer ou de le mettre à la corbeille.
-
-Le mot **contextuel** veut dire que le menu dépend de l’objet sous le pointeur. Les choix peuvent donc changer d’un objet à l’autre. Pour choisir une action dans le menu, on fait un clic gauche sur son nom.
 
 # Double clic
 
@@ -41,6 +33,14 @@ Par exemple, on peut faire glisser un fichier vers un dossier. Le dossier peut c
 Ce geste s’appelle **glisser-déposer** : on fait glisser l’objet, puis on le dépose.
 
 On peut aussi faire glisser la petite **poignée** d’une **barre de défilement** pour faire monter ou descendre une page.
+
+# Clic droit
+
+Un **clic droit** est une courte pression sur le bouton droit de la souris. Il sert souvent à afficher une liste d’actions possibles.
+
+Cette liste s’appelle un **menu contextuel**. Par exemple, le menu d’une image ou d’un fichier peut proposer de l’ouvrir, de le renommer ou de le mettre à la corbeille.
+
+Le mot **contextuel** veut dire que le menu dépend de l’objet sous le pointeur. Les choix peuvent donc changer d’un objet à l’autre. Pour choisir une action dans le menu, on fait un clic gauche sur son nom.
 
 # Sélectionner texte
 
