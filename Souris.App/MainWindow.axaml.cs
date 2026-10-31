@@ -27,6 +27,27 @@ public partial class MainWindow : Window
         Render();
     }
 
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        if (screen is null) return;
+
+        // WorkingArea is in physical pixels; Avalonia window sizes use logical pixels.
+        var scaling = screen.Scaling > 0 ? screen.Scaling : 1;
+        var availableWidth = Math.Max(1, screen.WorkingArea.Width / scaling - 32);
+        var availableHeight = Math.Max(1, screen.WorkingArea.Height / scaling - 48);
+        Width = Math.Min(1180, availableWidth);
+        Height = Math.Min(780, availableHeight);
+        MinWidth = Math.Min(560, Width);
+        MinHeight = Math.Min(360, Height);
+
+        Position = new PixelPoint(
+            screen.WorkingArea.X + (int)Math.Round((screen.WorkingArea.Width - Width * scaling) / 2),
+            screen.WorkingArea.Y + (int)Math.Round((screen.WorkingArea.Height - Height * scaling) / 2));
+    }
+
     private static IBrush ColorBrush(string color) => new SolidColorBrush(Color.Parse(color));
 
     private void Render()

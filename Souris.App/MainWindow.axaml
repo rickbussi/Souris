@@ -4,8 +4,6 @@
         Title="Souris — apprendre la souris"
         Width="1180"
         Height="780"
-        MinWidth="960"
-        MinHeight="620"
         WindowStartupLocation="CenterScreen"
         Background="#F5F7FB">
   <Window.Styles>
@@ -44,7 +42,8 @@
       <Setter Property="Foreground" Value="#111827" />
     </Style>
   </Window.Styles>
-  <Grid ColumnDefinitions="260,*">
+  <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+  <Grid Width="1180" Height="780" ColumnDefinitions="260,*">
     <Border Grid.Column="0" Background="#E9EFFA" Padding="18">
       <Grid RowDefinitions="Auto,*">
         <Border Margin="0,0,0,18" Background="White"
@@ -86,4 +85,5 @@
       </Grid>
     </Grid>
   </Grid>
+  </Viewbox>
 </Window>

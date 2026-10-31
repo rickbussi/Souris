@@ -123,21 +123,22 @@ public partial class MainWindow
         }
 
         var fileMenu = new StackPanel { Spacing = 0, Width = 180 };
+        var fileMenuBorder = new Border
+        {
+            Background = ColorBrush("#FFFFFF"),
+            BorderBrush = ColorBrush("#AEB4BE"),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(5),
+            Padding = new Thickness(5),
+            Child = fileMenu
+        };
         var filePopup = new Popup
         {
-            PlacementTarget = null,
             Placement = PlacementMode.Top,
-            IsLightDismissEnabled = true,
-            Child = new Border
-            {
-                Background = ColorBrush("#FFFFFF"),
-                BorderBrush = ColorBrush("#AEB4BE"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(5),
-                Child = fileMenu
-            }
+            IsLightDismissEnabled = true
         };
+        var filePopupContent = new Viewbox { Child = fileMenuBorder };
+        filePopup.Child = filePopupContent;
         var fileButton = new Button
         {
             Content = "Fichier",
@@ -149,7 +150,19 @@ public partial class MainWindow
         };
         filePopup.PlacementTarget = fileButton;
         fileButton.Classes.Add("contextMenuItem");
-        fileButton.Click += (_, _) => filePopup.IsOpen = !filePopup.IsOpen;
+        fileButton.Click += (_, _) =>
+        {
+            if (filePopup.IsOpen)
+            {
+                filePopup.IsOpen = false;
+                return;
+            }
+
+            var scale = Math.Min(1d, Math.Min(ClientSize.Width / 1180d, ClientSize.Height / 780d));
+            filePopupContent.Width = 192 * scale;
+            filePopupContent.Height = 164 * scale;
+            filePopup.IsOpen = true;
+        };
 
         foreach (var item in new[] { "Nouveau", "Ouvrir…", "Enregistrer", "Imprimer" })
         {
