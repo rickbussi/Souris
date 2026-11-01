@@ -10,7 +10,7 @@ describe('Parcours Souris', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
 
-    expect(root.querySelectorAll('.section-link')).toHaveLength(6);
+    expect(root.querySelectorAll('.section-link')).toHaveLength(7);
     (root.querySelector('.home .big') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(root.querySelector('h1')?.textContent?.trim()).toBe('Clic gauche');
@@ -34,6 +34,42 @@ describe('Parcours Souris', () => {
     expect(JSON.parse(localStorage.getItem('souris-progress-v2') ?? '{}').completed).toEqual([0]);
   });
 
+  it('ouvre le niveau actif et garde le futur exercice hors de la progression', async () => {
+    localStorage.clear();
+    localStorage.setItem('souris-progress-v2', JSON.stringify({ version: 2, completed: [1] }));
+    await TestBed.configureTestingModule({ imports: [App] }).compileComponents();
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const headers = root.querySelectorAll<HTMLButtonElement>('.level-header');
+    expect(headers).toHaveLength(2);
+    expect(headers[0].getAttribute('aria-expanded')).toBe('true');
+    expect(headers[1].getAttribute('aria-expanded')).toBe('false');
+
+    headers[0].click();
+    fixture.detectChanges();
+    expect(headers[0].getAttribute('aria-expanded')).toBe('false');
+    headers[1].click();
+    fixture.detectChanges();
+    expect(headers[0].getAttribute('aria-expanded')).toBe('false');
+    expect(headers[1].getAttribute('aria-expanded')).toBe('true');
+    (root.querySelector('#level-2-sections .section-link') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Exercice à venir');
+    expect(root.querySelector('.empty-scene')).not.toBeNull();
+    expect(root.querySelectorAll('.actions button')).toHaveLength(1);
+    expect(root.querySelector('.progress strong')?.textContent?.trim()).toBe('1 / 6 exercices réussis');
+
+    headers[0].click();
+    fixture.detectChanges();
+    (root.querySelector('#level-1-sections .section-link') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(headers[0].getAttribute('aria-expanded')).toBe('true');
+    expect(headers[1].getAttribute('aria-expanded')).toBe('false');
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Clic gauche');
+  });
+
   it('valide le double clic, le clic droit, la sélection et le survol', async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({ imports: [App] }).compileComponents();
@@ -43,8 +79,11 @@ describe('Parcours Souris', () => {
     const enterExercise = (index: number) => { app.start(index); app.next(); fixture.detectChanges(); };
 
     enterExercise(1);
+    expect(root.querySelectorAll('.folder .previews image')).toHaveLength(4);
     root.querySelector('.folder')!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     await fixture.whenStable();
+    fixture.detectChanges();
+    expect(root.querySelector('.folder svg')?.classList.contains('open')).toBe(true);
     expect(app.completed()).toContain(1);
 
     enterExercise(3);

@@ -2,7 +2,8 @@ import { Component, HostListener, OnDestroy, computed, signal } from '@angular/c
 import { lessons } from './lessons';
 import { FolderArt } from './folder-art';
 
-type Stage = 'home' | 'lesson' | 'exercise' | 'summary';
+type Stage = 'home' | 'lesson' | 'exercise' | 'summary' | 'placeholder';
+type Level = 1 | 2;
 type Progress = { version: 2; completed: number[] };
 type DesktopApi = { loadProgress(): Promise<number[]>; saveProgress(completed: number[]): Promise<boolean> };
 declare global { interface Window { sourisDesktop?: DesktopApi } }
@@ -41,8 +42,13 @@ function lessonBlocks(markdown: string): { list: boolean; html: string }[] {
 @Component({ selector: 'app-root', imports: [FolderArt], templateUrl: './app.html' })
 export class App implements OnDestroy {
   readonly lessons = lessons;
+  readonly levels = [
+    { number: 1 as const, entries: lessons.map((lesson, index) => ({ title: lesson.title, index, completable: true })) },
+    { number: 2 as const, entries: [{ title: 'Exercice à venir', index: lessons.length, completable: false }] }
+  ];
   readonly stage = signal<Stage>('home');
   readonly sectionIndex = signal(0);
+  readonly expandedLevel = signal<Level | null>(1);
   readonly completed = signal<number[]>([]);
   readonly feedback = signal('');
   readonly doneCount = computed(() => this.completed().length);
@@ -67,6 +73,7 @@ export class App implements OnDestroy {
   readonly seenTooltips = signal<number[]>([]);
   private hoverTimer?: ReturnType<typeof setTimeout>;
   private drag?: { pointerId: number; offsetX: number; offsetY: number };
+  private previousPage: { stage: Stage; sectionIndex: number } = { stage: 'home', sectionIndex: 0 };
 
   constructor() { this.loadProgress(); this.resetExercise(); }
   ngOnDestroy(): void { this.clearHoverTimer(); }
@@ -85,8 +92,28 @@ export class App implements OnDestroy {
     } catch { return false; }
   }
 
-  start(index = 0): void { this.sectionIndex.set(index); this.stage.set('lesson'); this.resetExercise(); }
-  goTo(index: number): void { if (this.stage() !== 'home') this.start(index); }
+  toggleLevel(level: Level): void { this.expandedLevel.update((current) => current === level ? null : level); }
+  isLevelActive(level: Level): boolean {
+    return level === 2 ? this.stage() === 'placeholder' : this.stage() !== 'home' && this.stage() !== 'placeholder';
+  }
+  start(index = 0): void {
+    if (index < 0 || index >= lessons.length) return;
+    this.sectionIndex.set(index);
+    this.stage.set('lesson');
+    this.expandedLevel.set(1);
+    this.resetExercise();
+  }
+  goTo(index: number): void {
+    if (index === lessons.length) this.openLevelTwoExercise();
+    else this.start(index);
+  }
+  private openLevelTwoExercise(): void {
+    if (this.stage() !== 'placeholder') this.previousPage = { stage: this.stage(), sectionIndex: this.sectionIndex() };
+    this.sectionIndex.set(lessons.length);
+    this.stage.set('placeholder');
+    this.expandedLevel.set(2);
+    this.resetExercise();
+  }
   async restartTutorial(): Promise<void> {
     if (!await this.saveProgress([])) {
       this.feedback.set('La progression n’a pas pu être remise à zéro. Réessaie.');
@@ -97,7 +124,12 @@ export class App implements OnDestroy {
   }
   back(): void {
     const stage = this.stage();
-    if (stage === 'summary') { this.sectionIndex.set(lessons.length - 1); this.stage.set('lesson'); }
+    if (stage === 'placeholder') {
+      this.sectionIndex.set(this.previousPage.sectionIndex);
+      this.stage.set(this.previousPage.stage);
+      this.expandedLevel.set(1);
+    }
+    else if (stage === 'summary') { this.sectionIndex.set(lessons.length - 1); this.stage.set('lesson'); }
     else if (stage === 'exercise') this.stage.set('lesson');
     else if (this.sectionIndex() > 0) this.sectionIndex.update((i) => i - 1);
     else this.stage.set('home');

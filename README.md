@@ -1,6 +1,6 @@
 # Souris
 
-Souris apprend les gestes de la souris avec six leçons et six exercices. L'application Angular fonctionne dans un navigateur et dans une fenêtre Electron sur Windows et Linux. Les deux versions partagent le même contenu et les mêmes interactions.
+Souris apprend les gestes de la souris avec six leçons et six exercices au niveau 1. La navigation regroupe les sections dans des niveaux repliables. Le niveau 2 contient pour l'instant un emplacement vide pour un futur exercice. L'application Angular fonctionne dans un navigateur et dans une fenêtre Electron sur Windows et Linux. Les deux versions partagent le même contenu et les mêmes interactions.
 
 ## Prérequis
 

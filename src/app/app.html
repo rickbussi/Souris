@@ -1,13 +1,30 @@
 <div class="shell">
   <aside class="sidebar">
     <div class="progress" aria-live="polite"><strong>{{ doneCount() }} / {{ lessons.length }} exercices réussis</strong></div>
-    <nav aria-label="Sections du tutoriel">
-      @for (lesson of lessons; track lesson.title; let i = $index) {
-        <button type="button" class="section-link" [class.active]="stage() !== 'home' && stage() !== 'summary' && sectionIndex() === i"
-          [disabled]="stage() === 'home'" [attr.aria-label]="(i + 1) + '. ' + lesson.title + ', exercice ' + (completed().includes(i) ? 'réussi' : 'à faire')"
-          (click)="goTo(i)">
-          <span>{{ i + 1 }}. {{ lesson.title }}</span><span class="check" [class.done]="completed().includes(i)">{{ completed().includes(i) ? '✓' : '' }}</span>
-        </button>
+    <nav aria-label="Niveaux et sections du tutoriel">
+      @for (level of levels; track level.number) {
+        <section class="level-group">
+          <button type="button" class="level-header" [class.current]="isLevelActive(level.number)"
+            [attr.aria-expanded]="expandedLevel() === level.number" [attr.aria-controls]="'level-' + level.number + '-sections'"
+            (click)="toggleLevel(level.number)">
+            <span>Niveau {{ level.number }}</span><span class="level-arrow" aria-hidden="true"></span>
+          </button>
+          <div class="level-sections" [class.expanded]="expandedLevel() === level.number"
+            [id]="'level-' + level.number + '-sections'" [attr.inert]="expandedLevel() === level.number ? null : ''"
+            [attr.aria-hidden]="expandedLevel() !== level.number">
+            <div class="level-section-items">
+              @for (entry of level.entries; track entry.index; let i = $index) {
+                <button type="button" class="section-link" [class.active]="stage() !== 'home' && stage() !== 'summary' && sectionIndex() === entry.index"
+                  [class.future]="!entry.completable"
+                  [attr.aria-label]="'Niveau ' + level.number + ', ' + (i + 1) + '. ' + entry.title + ', ' + (entry.completable ? (completed().includes(entry.index) ? 'exercice réussi' : 'exercice à faire') : 'à venir')"
+                  (click)="goTo(entry.index)">
+                  <span>{{ i + 1 }}. {{ entry.title }}</span>
+                  @if (entry.completable) { <span class="check" [class.done]="completed().includes(entry.index)">{{ completed().includes(entry.index) ? '✓' : '' }}</span> }
+                </button>
+              }
+            </div>
+          </div>
+        </section>
       }
     </nav>
   </aside>
@@ -16,7 +33,8 @@
     <header class="heading">
       @if (stage() === 'home') { <p class="eyebrow">BIENVENUE</p><h1>Apprendre à utiliser la souris</h1> }
       @else if (stage() === 'summary') { <p class="eyebrow">MA PROGRESSION</p><h1>Bravo pour ton parcours !</h1> }
-      @else { <p class="eyebrow">SECTION {{ sectionIndex() + 1 }} SUR {{ lessons.length }} · {{ stage() === 'lesson' ? 'EXPLICATION' : 'EXERCICE' }}</p><h1>{{ currentLesson().title }}</h1> }
+      @else if (stage() === 'placeholder') { <p class="eyebrow">Niveau 2 · Exercice 1</p><h1>Exercice à venir</h1> }
+      @else { <p class="eyebrow">Niveau 1 · Section {{ sectionIndex() + 1 }} sur {{ lessons.length }} · {{ stage() === 'lesson' ? 'Tutoriel' : 'Exercice' }}</p><h1>{{ currentLesson().title }}</h1> }
     </header>
 
     <section class="content" aria-label="Contenu du tutoriel">
@@ -34,8 +52,13 @@
         </div>
       } @else if (stage() === 'summary') {
         <div class="summary">
-          <p>Tu as réussi {{ doneCount() }} exercice{{ doneCount() > 1 ? 's' : '' }} sur {{ lessons.length }}.</p>
+          <p>Tu as réussi {{ doneCount() }} exercice{{ doneCount() > 1 ? 's' : '' }} sur {{ lessons.length }} dans le niveau 1.</p>
           <p>Tu peux choisir une section à gauche pour relire son explication ou refaire son exercice.</p>
+        </div>
+      } @else if (stage() === 'placeholder') {
+        <div class="exercise placeholder-exercise">
+          <h2>Le premier exercice du niveau 2 prendra place ici.</h2>
+          <div class="exercise-scene empty-scene" aria-label="Zone réservée au prochain exercice"></div>
         </div>
       } @else {
         <div class="exercise">
@@ -106,7 +129,7 @@
     </section>
 
     @if (stage() !== 'home') { <footer class="actions"><button class="primary" (click)="back()">{{ stage() === 'lesson' && sectionIndex() === 0 ? 'Accueil' : 'Retour' }}</button>
-      @if (stage() !== 'summary') { <button class="primary" [disabled]="stage() === 'exercise' && !isDone()" (click)="next()">{{ stage() === 'lesson' ? 'Passer à l’exercice' : sectionIndex() === lessons.length - 1 ? 'Voir ma progression' : 'Section suivante' }}</button> }
+      @if (stage() !== 'summary' && stage() !== 'placeholder') { <button class="primary" [disabled]="stage() === 'exercise' && !isDone()" (click)="next()">{{ stage() === 'lesson' ? 'Passer à l’exercice' : sectionIndex() === lessons.length - 1 ? 'Voir ma progression' : 'Section suivante' }}</button> }
     </footer> }
   </main>
 </div>

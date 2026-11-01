@@ -1,12 +1,10 @@
 app-folder-art { display: block; width: 100%; height: 100%; }
 app-folder-art svg { display: block; width: 100%; height: 100%; overflow: visible; }
-app-folder-art .opening { opacity: 0; }
-app-folder-art .previews { transition: transform 360ms ease-out; }
+app-folder-art .previews { transition: transform 470ms cubic-bezier(.18, .75, .25, 1); }
 app-folder-art .folder-front {
   transform-box: fill-box;
   transform-origin: center bottom;
-  transition: transform 360ms ease-out;
+  transition: transform 470ms cubic-bezier(.18, .75, .25, 1);
 }
-app-folder-art .open .opening { opacity: 1; }
-app-folder-art .open .previews { transform: translateY(-58px); }
-app-folder-art .open .folder-front { transform: scaleY(.73); }
+app-folder-art .open .previews { transform: translateY(-100px); }
+app-folder-art .open .folder-front { transform: scaleY(.89) skewX(-11deg); }

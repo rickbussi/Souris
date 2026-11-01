@@ -49,6 +49,56 @@ app-root {
   gap: 8px;
 }
 
+.level-group { flex: none; min-width: 0; }
+
+.level-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 1px solid #b8cae5;
+  border-radius: 12px;
+  background: #dce9fc;
+  color: #17345c;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.level-header.current { border-color: #2266cc; background: #cee0fb; }
+.level-header:hover { background: #c8ddfb; }
+.level-arrow {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 220ms ease;
+}
+
+.level-header[aria-expanded="true"] .level-arrow { transform: rotate(225deg); }
+.level-sections {
+  display: grid;
+  grid-template-rows: 0fr;
+  min-width: 0;
+  margin-top: 0;
+  transition: grid-template-rows 240ms ease, margin-top 240ms ease;
+}
+
+.level-sections.expanded { grid-template-rows: 1fr; margin-top: 8px; }
+.level-section-items {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 10px;
+}
+
 .section-link {
   flex: none;
   display: grid;
@@ -70,17 +120,12 @@ app-root {
   cursor: pointer;
 }
 
-.section-link:disabled {
-  border-color: transparent;
-  background: #eef3fb;
-  opacity: 1;
-  cursor: default;
-}
-
 .section-link.active {
   border: 2px solid #2266cc;
   background: #d8e7ff;
 }
+
+.section-link.future { grid-template-columns: 1fr; }
 
 .check {
   width: 22px;
@@ -168,6 +213,7 @@ app-root {
 }
 
 .summary p { color: #213450; font-size: 19px; line-height: 30px; }
+.empty-scene { min-height: 300px; }
 
 button { font-family: inherit; cursor: pointer; }
 
@@ -324,7 +370,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .drop-folder.highlight { background: #cdeedb; }
-.drop-folder app-folder-art { width: 136px; height: 68px; }
+.drop-folder app-folder-art { width: 116px; height: 76px; }
 .drop-folder strong { font-size: 17px; font-weight: 600; }
 
 .drag-file {
@@ -404,8 +450,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
   .shell { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
   .sidebar { padding: 10px 16px; gap: 8px; }
   .progress { min-height: 46px; padding: 7px; }
-  .sidebar nav { overflow-x: auto; overflow-y: hidden; flex-direction: row; }
-  .section-link { min-width: 175px; min-height: 52px; font-size: 14px; }
+  .sidebar nav { max-height: 34dvh; overflow-x: hidden; overflow-y: auto; }
+  .level-section-items { flex-direction: row; width: 100%; overflow-x: auto; padding-left: 0; }
+  .section-link { width: 175px; min-width: 175px; min-height: 52px; font-size: 14px; }
   .main { padding: 16px; gap: 12px; }
   .content { padding: 20px; }
   .first-scene { grid-template-columns: 1fr; }
