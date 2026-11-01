@@ -1,0 +1,112 @@
+<div class="shell">
+  <aside class="sidebar">
+    <div class="progress" aria-live="polite"><strong>{{ doneCount() }} / {{ lessons.length }} exercices réussis</strong></div>
+    <nav aria-label="Sections du tutoriel">
+      @for (lesson of lessons; track lesson.title; let i = $index) {
+        <button type="button" class="section-link" [class.active]="stage() !== 'home' && stage() !== 'summary' && sectionIndex() === i"
+          [disabled]="stage() === 'home'" [attr.aria-label]="(i + 1) + '. ' + lesson.title + ', exercice ' + (completed().includes(i) ? 'réussi' : 'à faire')"
+          (click)="goTo(i)">
+          <span>{{ i + 1 }}. {{ lesson.title }}</span><span class="check" [class.done]="completed().includes(i)">{{ completed().includes(i) ? '✓' : '' }}</span>
+        </button>
+      }
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="heading">
+      @if (stage() === 'home') { <p class="eyebrow">BIENVENUE</p><h1>Apprendre à utiliser la souris</h1> }
+      @else if (stage() === 'summary') { <p class="eyebrow">MA PROGRESSION</p><h1>Bravo pour ton parcours !</h1> }
+      @else { <p class="eyebrow">SECTION {{ sectionIndex() + 1 }} SUR {{ lessons.length }} · {{ stage() === 'lesson' ? 'EXPLICATION' : 'EXERCICE' }}</p><h1>{{ currentLesson().title }}</h1> }
+    </header>
+
+    <section class="content" aria-label="Contenu du tutoriel">
+      @if (stage() === 'home') {
+        <div class="home">
+          <p>Découvre les gestes de base de la souris avec de petites explications et des exercices. Tu pourras ensuite les utiliser dans Windows ou Linux.</p>
+          @if (doneCount() === 0) { <button class="primary big" (click)="start()">Démarrer</button> }
+          @else if (firstIncomplete() >= 0) { <button class="primary big" (click)="start(firstIncomplete())">Continuer vers {{ lessons[firstIncomplete()].title }}</button> }
+          @if (doneCount() > 0) { <button class="primary big" (click)="restartTutorial()">Recommencer le tutoriel</button> }
+          @if (feedback() === 'La progression n’a pas pu être remise à zéro. Réessaie.') { <p class="error" role="alert">{{ feedback() }}</p> }
+        </div>
+      } @else if (stage() === 'lesson') {
+        <div class="lesson">
+          @for (block of blocks(); track $index) { <p [class.list-item]="block.list" [innerHTML]="block.html"></p> }
+        </div>
+      } @else if (stage() === 'summary') {
+        <div class="summary">
+          <p>Tu as réussi {{ doneCount() }} exercice{{ doneCount() > 1 ? 's' : '' }} sur {{ lessons.length }}.</p>
+          <p>Tu peux choisir une section à gauche pour relire son explication ou refaire son exercice.</p>
+        </div>
+      } @else {
+        <div class="exercise">
+          @switch (sectionIndex()) {
+            @case (0) {
+              <h2>Réaliser ces trois instructions pour passer à la section suivante.</h2>
+              <ol class="instructions"><li>Clique une fois sur le bouton « Lecture ».</li><li>Choisis « Cappuccino » dans la liste des cafés.</li><li>Ouvre le menu « Fichier », puis clique sur « Imprimer ».</li></ol>
+              <div class="exercise-scene first-scene">
+                <div class="click-action"><button class="primary" (click)="play()">{{ clickPlayed() ? 'Lecture lancée' : 'Lecture' }}</button></div>
+                <div class="coffee"><div class="coffee-title">Nos cafés disponibles ce matin</div>
+                  @for (choice of ['Espresso', 'Cappuccino', 'Café filtre']; track choice) {
+                    <label><input type="radio" name="coffee" [checked]="coffeeChoice() === choice" (change)="chooseCoffee(choice)" /> {{ choice }}</label>
+                  }
+                </div>
+                <div class="menu-task"><div class="file-menu"><button class="secondary" [attr.aria-expanded]="fileMenuOpen()" (click)="fileMenuOpen.set(!fileMenuOpen())">Fichier</button>
+                  @if (fileMenuOpen()) { <div class="popup-menu">@for (action of ['Nouveau', 'Ouvrir…', 'Enregistrer', 'Imprimer']; track action) { <button (click)="fileAction(action)">{{ action }}</button> }</div> }
+                </div></div>
+              </div>
+            }
+            @case (1) {
+              <h2>Double-clique sur le dossier « Images » pour l’ouvrir.</h2>
+              <div class="exercise-scene folder-scene">
+                <button class="folder" [class.open]="folderOpen()" (dblclick)="openFolder()" aria-label="Dossier Images, double-cliquer pour ouvrir">
+                  <app-folder-art [open]="folderOpen()" />
+                </button>
+              </div>
+            }
+            @case (2) {
+              <h2>Fais glisser le fichier « ballon.jpg » sur le dossier « Images », puis relâche.</h2>
+              <div class="exercise-scene drag-scene">
+                <div class="drag-stage">
+                  <div class="drop-folder" [class.highlight]="folderHighlighted() || fileDropped()"><app-folder-art [compact]="true" /><strong>Images</strong></div>
+                  @if (!fileDropped()) { <div class="drag-file" [style.left.px]="dragX()" [style.top.px]="dragY()"
+                    (pointerdown)="dragStart($event)" (pointermove)="dragMove($event)" (pointerup)="dragEnd($event)" (pointercancel)="dragEnd($event)">
+                    <img src="/assets/ballon-plage.png" alt="" draggable="false" /><strong>ballon.jpg</strong></div> }
+                </div>
+              </div>
+            }
+            @case (3) {
+              <h2>Fais un clic droit sur l’image, puis choisis « Ouvrir » dans le menu.</h2>
+              <div class="exercise-scene context-scene">
+                <img class="context-image" src="/assets/cappuccino-heart.png" alt="Cappuccino" (contextmenu)="showContextMenu($event)" draggable="false" />
+                @if (contextMenu(); as position) { <div class="popup-menu context-popup" [style.left.px]="position.x" [style.top.px]="position.y">
+                  @for (action of ['Ouvrir', 'Renommer', 'Mettre à la corbeille']; track action) { <button (click)="contextAction(action)">{{ action }}</button> }
+                </div> }
+              </div>
+            }
+            @case (4) {
+              <h2>Sélectionne les mots « petite barre » dans la phrase.</h2>
+              <div class="exercise-scene select-scene"><textarea readonly aria-label="Texte à sélectionner" (select)="checkSelection($event)">La petite barre clignote dans la zone où tu écris.</textarea></div>
+            }
+            @case (5) {
+              <h2>Clique sur le bon bouton pour {{ hoverTarget() }}. Utilise l’info-bulle pour te guider.</h2>
+              <div class="exercise-scene hover-scene">
+                <div class="hover-stage">
+                  @for (action of hoverActions(); track action; let i = $index) { <div class="hover-choice">
+                    <button class="primary" (pointerenter)="hoverEnter(i)" (pointermove)="hoverMove(i)" (pointerleave)="hoverLeave(i)" (click)="chooseHover(i)">{{ ['A', 'B', 'C'][i] }}</button>
+                    @if (tooltipIndex() === i) { <div class="tooltip" role="tooltip">{{ action[0].toUpperCase() + action.slice(1) }}.</div> }
+                  </div> }
+                </div>
+              </div>
+            }
+          }
+          <p class="feedback" [class.success]="isDone()" role="status">{{ feedback() }}</p>
+          <button class="secondary restart" (click)="resetExercise()">Recommencer l’exercice</button>
+        </div>
+      }
+    </section>
+
+    @if (stage() !== 'home') { <footer class="actions"><button class="primary" (click)="back()">{{ stage() === 'lesson' && sectionIndex() === 0 ? 'Accueil' : 'Retour' }}</button>
+      @if (stage() !== 'summary') { <button class="primary" [disabled]="stage() === 'exercise' && !isDone()" (click)="next()">{{ stage() === 'lesson' ? 'Passer à l’exercice' : sectionIndex() === lessons.length - 1 ? 'Voir ma progression' : 'Section suivante' }}</button> }
+    </footer> }
+  </main>
+</div>
