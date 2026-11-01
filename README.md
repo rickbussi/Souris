@@ -1,29 +1,54 @@
 # Souris
 
-Application de bureau pour apprendre les gestes de la souris. Une page d’accueil permet de démarrer, de reprendre à la première section non terminée ou de recommencer le tutoriel. Les six explications sont dans `Souris.App/Content/Tutoriel.md`. Chaque section comporte un exercice. Les réussites sont enregistrées entre les lancements.
+Souris apprend les gestes de la souris avec six leçons et six exercices. L'application Angular fonctionne dans un navigateur et dans une fenêtre Electron sur Windows et Linux. Les deux versions partagent le même contenu et les mêmes interactions.
 
-## Démarrer
+## Prérequis
 
-```bash
-dotnet restore Souris.slnx
-dotnet run --project Souris.App/Souris.App.csproj
-```
+- Node.js et npm compatibles avec la version d'Angular déclarée dans [`package.json`](package.json).
+- Pour produire les installateurs, exécuter la commande Windows sur Windows et la commande Linux sur Linux.
 
-## Publier et installer sous Linux x64
+Toutes les commandes ci-dessous se lancent depuis la racine du projet.
 
-La publication se fait sur Windows avec le SDK .NET 10. Depuis PowerShell, à la racine du projet, exécutez :
+## Lancer dans un navigateur
 
 ```powershell
-dotnet publish .\Souris.App\Souris.App.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o .\publish\linux-x64
+npm.cmd install
+npm.cmd start
 ```
 
-Cette commande crée `publish/linux-x64`. Copiez **tout le contenu** de ce dossier vers un dossier sur votre machine Linux. Il contient le binaire `Souris`, le script `publish-linux.sh` et l'icône `souris-icon.png`.
+Ouvrir l'adresse indiquée par Angular, habituellement `http://localhost:4200`. La progression est enregistrée dans le stockage local de ce navigateur.
 
-Sur Linux, ouvrez un terminal dans le dossier copié et autorisez l'exécution du script, puis lancez-le :
+## Lancer l'application de bureau
+
+```powershell
+npm.cmd install
+npm.cmd run desktop
+```
+
+Cette commande construit Angular puis ouvre la même interface dans Electron. La progression de bureau est enregistrée dans le dossier de données utilisateur de l'application. Au premier lancement, Electron peut importer un ancien fichier local `progression.json` s'il existe. Une progression enregistrée dans un navigateur ne peut pas être lue automatiquement par Electron.
+
+## Créer les installateurs
+
+Sur Windows :
+
+```powershell
+npm.cmd install
+npm.cmd run dist:win
+```
+
+Pour lancer directement la version Windows générée, exécuter `& ".\release\win-unpacked\Souris.exe"` depuis la racine du projet. Pour installer l'application, lancer `& ".\release\Souris Setup 1.0.0.exe"`.
+
+Sur Linux :
 
 ```bash
-chmod +x publish-linux.sh
-./publish-linux.sh
+npm install
+npm run dist:linux
 ```
 
-Le script installe Souris dans `~/.local/opt/souris`, ajoute son icône au menu des applications et crée le lanceur. L'installation ne demande pas les droits administrateur. La publication autonome regroupe l'application et le runtime .NET dans un seul binaire, mais le script et l'icône doivent rester à côté du binaire jusqu'à l'installation.
+Les fichiers produits sont dans `release/` : installateur NSIS pour Windows et AppImage pour Linux. Sur Linux, rendre l'AppImage exécutable avec `chmod +x`, puis la lancer. Pour héberger la version web, lancer `npm.cmd run build` sur Windows ou `npm run build` sur Linux, puis publier le contenu de `dist/souris-web/browser/` à la racine du site.
+
+Le workflow GitHub Actions `Applications de bureau` peut être déclenché manuellement pour obtenir les deux fichiers en artefacts, chacun construit sur son système cible.
+
+## Contenu
+
+Les leçons sont dans [`content/Tutoriel.md`](content/Tutoriel.md). Le script de construction les convertit en données Angular. Les images utilisées par les exercices sont dans `public/assets/`.
