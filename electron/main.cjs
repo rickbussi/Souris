@@ -9,6 +9,7 @@ protocol.registerSchemesAsPrivileged([{ scheme: 'souris', privileges: {
 
 let mainWindow;
 const appRoot = path.join(__dirname, '..', 'dist', 'souris-web', 'browser');
+const exerciseCount = 7;
 const progressFile = () => path.join(app.getPath('userData'), 'progression.json');
 function legacyFile() {
   const dataHome = process.platform === 'win32'
@@ -17,32 +18,34 @@ function legacyFile() {
   return path.join(dataHome, 'Souris', 'progression.json');
 }
 function normalizeProgress(data) {
+  const valid = (values) => [...new Set(values.filter((index) => Number.isInteger(index)
+    && index >= 0 && index < exerciseCount))].sort((a, b) => a - b);
   if (Array.isArray(data)) {
-    return data.map((index) => index === 1 ? 3 : index === 2 ? 1 : index === 3 ? 2 : index)
-      .filter((index) => Number.isInteger(index) && index >= 0 && index < 6);
+    return { version: 2, completed: valid(data.map((index) => index === 1 ? 3 : index === 2 ? 1 : index === 3 ? 2 : index)), failed: [] };
   }
-  return data?.version === 2 && Array.isArray(data.completed)
-    ? data.completed.filter((index) => Number.isInteger(index) && index >= 0 && index < 6)
-    : [];
+  if (data?.version !== 2 || !Array.isArray(data.completed)) return { version: 2, completed: [], failed: [] };
+  const completed = valid(data.completed);
+  const failed = valid(Array.isArray(data.failed) ? data.failed : []).filter((index) => !completed.includes(index));
+  return { version: 2, completed, failed };
 }
-async function saveProgress(values) {
+async function saveProgress(progress) {
   try {
     await fs.mkdir(path.dirname(progressFile()), { recursive: true });
-    await fs.writeFile(progressFile(), JSON.stringify({ version: 2, completed: values }), 'utf8');
+    await fs.writeFile(progressFile(), JSON.stringify(progress), 'utf8');
     return true;
   } catch { return false; }
 }
 async function loadProgress() {
   for (const file of [progressFile(), legacyFile()]) {
     try {
-      const values = [...new Set(normalizeProgress(JSON.parse(await fs.readFile(file, 'utf8'))))].sort();
-      if (file !== progressFile()) await saveProgress(values);
-      return values;
+      const progress = normalizeProgress(JSON.parse(await fs.readFile(file, 'utf8')));
+      if (file !== progressFile()) await saveProgress(progress);
+      return progress;
     } catch (error) {
-      if (error.code !== 'ENOENT') return [];
+      if (error.code !== 'ENOENT') return { version: 2, completed: [], failed: [] };
     }
   }
-  return [];
+  return { version: 2, completed: [], failed: [] };
 }
 function trusted(event) {
   return event.sender === mainWindow?.webContents && event.senderFrame?.url.startsWith('souris://app/');
@@ -58,10 +61,12 @@ app.whenReady().then(() => {
     if (relative.startsWith('..') || path.isAbsolute(relative)) return new Response('Not found', { status: 404 });
     return net.fetch(pathToFileURL(file).toString());
   });
-  ipcMain.handle('progress:load', (event) => trusted(event) ? loadProgress() : []);
-  ipcMain.handle('progress:save', (event, values) => trusted(event) && Array.isArray(values)
-    && values.length <= 6 && values.every((i) => Number.isInteger(i) && i >= 0 && i < 6)
-    ? saveProgress([...new Set(values)].sort()) : false);
+  ipcMain.handle('progress:load', (event) => trusted(event) ? loadProgress() : { version: 2, completed: [], failed: [] });
+  const validIndices = (values) => Array.isArray(values) && values.length <= exerciseCount
+    && values.every((i) => Number.isInteger(i) && i >= 0 && i < exerciseCount);
+  ipcMain.handle('progress:save', (event, progress) => trusted(event) && progress?.version === 2
+    && validIndices(progress.completed) && validIndices(progress.failed)
+    ? saveProgress(normalizeProgress(progress)) : false);
   mainWindow = new BrowserWindow({
     width: 1180, height: 780, minWidth: 560, minHeight: 460,
     show: process.env.SOURIS_SMOKE !== '1',

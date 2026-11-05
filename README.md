@@ -1,6 +1,6 @@
 # Souris
 
-Souris apprend les gestes de la souris avec six leçons et six exercices au niveau 1. La navigation regroupe les sections dans des niveaux repliables. Le niveau 2 contient pour l'instant un emplacement vide pour un futur exercice. L'application Angular fonctionne dans un navigateur et dans une fenêtre Electron sur Windows et Linux. Les deux versions partagent le même contenu et les mêmes interactions.
+Souris apprend les gestes de la souris avec six leçons et six exercices au niveau 1. La navigation regroupe les sections dans des niveaux repliables. Le premier exercice du niveau 2 combine l'ouverture d'un dossier, le déplacement de plusieurs images vers la corbeille et leur restauration par le menu contextuel. Pour réussir, seule l'image demandée doit être dans la corbeille au moment de la vider. Une mauvaise image supprimée définitivement fait échouer l'exercice. Les réussites et les échecs sont annoncés dans une fenêtre modale, et les exercices échoués affichent un X rouge dans la navigation. Après le résultat, l'exercice est grisé et désactivé jusqu'à ce qu'il soit recommencé. L'application Angular fonctionne dans un navigateur et dans une fenêtre Electron sur Windows et Linux. Les deux versions partagent le même contenu et les mêmes interactions.
 
 ## Prérequis
 
@@ -16,7 +16,7 @@ npm.cmd install
 npm.cmd start
 ```
 
-Ouvrir l'adresse indiquée par Angular, habituellement `http://localhost:4200`. La progression est enregistrée dans le stockage local de ce navigateur.
+Ouvrir l'adresse indiquée par Angular, habituellement `http://localhost:4200`. Les réussites et les échecs sont enregistrés dans le stockage local de ce navigateur.
 
 ## Lancer l'application de bureau
 

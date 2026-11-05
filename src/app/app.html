@@ -1,6 +1,6 @@
 <div class="shell">
   <aside class="sidebar">
-    <div class="progress" aria-live="polite"><strong>{{ doneCount() }} / {{ lessons.length }} exercices réussis</strong></div>
+    <div class="progress" aria-live="polite"><strong>{{ doneCount() }} / {{ totalExercises }} exercices réussis</strong></div>
     <nav aria-label="Niveaux et sections du tutoriel">
       @for (level of levels; track level.number) {
         <section class="level-group">
@@ -16,10 +16,11 @@
               @for (entry of level.entries; track entry.index; let i = $index) {
                 <button type="button" class="section-link" [class.active]="stage() !== 'home' && stage() !== 'summary' && sectionIndex() === entry.index"
                   [class.future]="!entry.completable"
-                  [attr.aria-label]="'Niveau ' + level.number + ', ' + (i + 1) + '. ' + entry.title + ', ' + (entry.completable ? (completed().includes(entry.index) ? 'exercice réussi' : 'exercice à faire') : 'à venir')"
+                  [attr.aria-label]="'Niveau ' + level.number + ', ' + (i + 1) + '. ' + entry.title + ', ' + (entry.completable ? (failed().includes(entry.index) ? 'exercice échoué' : completed().includes(entry.index) ? 'exercice réussi' : 'exercice à faire') : 'à venir')"
                   (click)="goTo(entry.index)">
                   <span>{{ i + 1 }}. {{ entry.title }}</span>
-                  @if (entry.completable) { <span class="check" [class.done]="completed().includes(entry.index)">{{ completed().includes(entry.index) ? '✓' : '' }}</span> }
+                  @if (entry.completable) { <span class="check" [class.done]="completed().includes(entry.index) && !failed().includes(entry.index)"
+                    [class.failed]="failed().includes(entry.index)" aria-hidden="true">{{ failed().includes(entry.index) ? '×' : completed().includes(entry.index) ? '✓' : '' }}</span> }
                 </button>
               }
             </div>
@@ -33,7 +34,8 @@
     <header class="heading">
       @if (stage() === 'home') { <p class="eyebrow">BIENVENUE</p><h1>Apprendre à utiliser la souris</h1> }
       @else if (stage() === 'summary') { <p class="eyebrow">MA PROGRESSION</p><h1>Bravo pour ton parcours !</h1> }
-      @else if (stage() === 'placeholder') { <p class="eyebrow">Niveau 2 · Exercice 1</p><h1>Exercice à venir</h1> }
+      @else if (stage() === 'advanced') { <p class="eyebrow">Niveau 2 · Section 1 sur 2 · Exercice</p><h1>La corbeille</h1> }
+      @else if (stage() === 'mail') { <p class="eyebrow">Niveau 2 · Section 2 sur 2 · Exercice</p><h1>Le code par courriel</h1> }
       @else { <p class="eyebrow">Niveau 1 · Section {{ sectionIndex() + 1 }} sur {{ lessons.length }} · {{ stage() === 'lesson' ? 'Tutoriel' : 'Exercice' }}</p><h1>{{ currentLesson().title }}</h1> }
     </header>
 
@@ -42,7 +44,7 @@
         <div class="home">
           <p>Découvre les gestes de base de la souris avec de petites explications et des exercices. Tu pourras ensuite les utiliser dans Windows ou Linux.</p>
           @if (doneCount() === 0) { <button class="primary big" (click)="start()">Démarrer</button> }
-          @else if (firstIncomplete() >= 0) { <button class="primary big" (click)="start(firstIncomplete())">Continuer vers {{ lessons[firstIncomplete()].title }}</button> }
+          @else if (firstIncomplete() >= 0) { <button class="primary big" (click)="goTo(firstIncomplete())">Continuer vers {{ firstIncomplete() === lessons.length ? 'La corbeille' : firstIncomplete() === lessons.length + 1 ? 'Le code par courriel' : lessons[firstIncomplete()].title }}</button> }
           @if (doneCount() > 0) { <button class="primary big" (click)="restartTutorial()">Recommencer le tutoriel</button> }
           @if (feedback() === 'La progression n’a pas pu être remise à zéro. Réessaie.') { <p class="error" role="alert">{{ feedback() }}</p> }
         </div>
@@ -52,16 +54,170 @@
         </div>
       } @else if (stage() === 'summary') {
         <div class="summary">
-          <p>Tu as réussi {{ doneCount() }} exercice{{ doneCount() > 1 ? 's' : '' }} sur {{ lessons.length }} dans le niveau 1.</p>
+          <p>Tu as réussi {{ doneCount() }} exercice{{ doneCount() > 1 ? 's' : '' }} sur {{ totalExercises }}.</p>
           <p>Tu peux choisir une section à gauche pour relire son explication ou refaire son exercice.</p>
         </div>
-      } @else if (stage() === 'placeholder') {
-        <div class="exercise placeholder-exercise">
-          <h2>Le premier exercice du niveau 2 prendra place ici.</h2>
-          <div class="exercise-scene empty-scene" aria-label="Zone réservée au prochain exercice"></div>
+      } @else if (stage() === 'advanced') {
+        <div class="exercise advanced-exercise" [class.locked]="exerciseLocked()"
+          [attr.inert]="exerciseLocked() ? '' : null" [attr.aria-disabled]="exerciseLocked()">
+          <div class="advanced-instructions">
+            <h2>Le dossier contient des images. Déplace l’image « {{ advancedPhotos[advancedTargetIndex()].name }} » dans la corbeille et vide-la pour la supprimer définitivement.</h2>
+            <button type="button" class="hint-button" title="Voir les indices" aria-label="Voir les indices"
+              aria-haspopup="dialog" aria-controls="hints-dialog" (click)="openHints()">
+              <img src="/assets/help-lightbulb.svg" alt="" /><span>Indices</span>
+            </button>
+          </div>
+          <div class="exercise-scene advanced-scene">
+            <div class="advanced-viewport">
+              <div class="advanced-desktop">
+                <button type="button" class="advanced-folder" (dblclick)="openAdvancedFolder()"
+                  aria-label="Dossier Images, double-cliquer pour ouvrir">
+                  <app-folder-art [compact]="true" [open]="advancedFolderOpen()" />
+                  <strong>Images</strong>
+                </button>
+                @if (advancedFolderOpen()) {
+                  <div class="advanced-window" role="group" aria-label="Dossier Images ouvert">
+                    <div class="advanced-window-bar"><strong>Images</strong>
+                      <button type="button" (click)="advancedFolderOpen.set(false)" aria-label="Fermer le dossier Images"
+                        title="Fermer le dossier Images">×</button>
+                    </div>
+                    <div class="advanced-window-files">
+                      @for (photo of advancedPhotos; track photo.file; let i = $index) {
+                        @if (!advancedTrashedImages().includes(i) && !advancedDeletedImages().includes(i)) {
+                          <div class="advanced-image-file" [class.dragging]="advancedGhost()?.index === i"
+                            [attr.aria-label]="photo.name + ', faire glisser vers la corbeille'"
+                            (pointerdown)="advancedDragStart($event, i)" (pointermove)="advancedDragMove($event)"
+                            (pointerup)="advancedDragEnd($event)" (pointercancel)="advancedDragEnd($event)">
+                            <img [src]="'/assets/' + photo.file" [alt]="photo.name" draggable="false" /><span>{{ photo.name }}</span>
+                          </div>
+                        }
+                      }
+                    </div>
+                  </div>
+                }
+                <div class="advanced-trash" [class.hot]="advancedTrashHot()" (contextmenu)="showTrashMenu($event)"
+                  aria-label="Corbeille, clic droit pour ouvrir le menu">
+                  <app-trash-art [images]="advancedTrashFiles()" />
+                  <strong>Corbeille</strong>
+                </div>
+                @if (advancedGhost(); as ghost) {
+                  <div class="advanced-ghost" [style.left.px]="ghost.x" [style.top.px]="ghost.y" aria-hidden="true">
+                    <img [src]="'/assets/' + advancedPhotos[ghost.index].file" alt="" draggable="false" />
+                    <span>{{ advancedPhotos[ghost.index].name }}</span>
+                  </div>
+                }
+                @if (advancedTrashMenu(); as menu) {
+                  <div class="popup-menu trash-menu" [style.left.px]="menu.x" [style.top.px]="menu.y">
+                    <button type="button" [disabled]="advancedTrashedImages().length === 0" (click)="restoreTrash()">Restaurer les éléments</button>
+                    <button type="button" [disabled]="advancedTrashedImages().length === 0" (click)="emptyTrash()">Vider la corbeille</button>
+                  </div>
+                }
+                <div class="desktop-taskbar" aria-hidden="true">
+                  <span class="desktop-launcher"><span></span><span></span><span></span><span></span></span>
+                  <span class="desktop-status">
+                    <svg viewBox="0 0 26 16" width="26" height="16"><rect x="1" y="2" width="21" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" /><rect x="23" y="6" width="2" height="4" rx="1" fill="currentColor" /><rect x="4" y="5" width="14" height="6" rx="1" fill="currentColor" opacity=".55" /></svg>
+                    <span>{{ desktopTime }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        <dialog #hintsDialog id="hints-dialog" class="hints-dialog" aria-labelledby="hints-title">
+          <div class="hints-header"><h2 id="hints-title">Indices</h2>
+            <button type="button" class="hints-close" title="Fermer les indices" aria-label="Fermer les indices" (click)="closeHints()">×</button>
+          </div>
+          <div class="hints-body">
+            <ul>
+              <li>Double-clique sur un dossier pour l’ouvrir et voir son contenu.</li>
+              <li>Pour déplacer une image, maintiens le bouton gauche de la souris, glisse-la, puis relâche.</li>
+              <li>Un clic droit sur la corbeille affiche les actions possibles. Restaure les images à conserver avant de la vider.</li>
+            </ul>
+          </div>
+          <div class="hints-actions"><button type="button" class="primary" (click)="closeHints()">Fermer</button></div>
+        </dialog>
+      } @else if (stage() === 'mail') {
+        <div class="exercise mail-exercise" [class.locked]="exerciseLocked()"
+          [attr.inert]="exerciseLocked() ? '' : null" [attr.aria-disabled]="exerciseLocked()">
+          <div class="advanced-instructions"><h2>Un code d’activation est nécessaire pour continuer. Retrouve-le dans le courriel, puis copie-le et colle-le avec les fonctions de la souris.</h2>
+            <button type="button" class="hint-button" title="Voir les indices" aria-label="Voir les indices"
+              aria-haspopup="dialog" aria-controls="mail-hints-dialog" (click)="openHints()">
+              <img src="/assets/help-lightbulb.svg" alt="" /><span>Indices</span>
+            </button>
+          </div>
+          <div class="exercise-scene advanced-scene mail-scene">
+            <div class="advanced-viewport"><div class="advanced-desktop mail-desktop"
+              (pointermove)="mailWindowDragMove($event)" (pointerup)="mailWindowDragEnd($event)" (pointercancel)="mailWindowDragEnd($event)">
+              <button type="button" class="mail-icon" (dblclick)="openMail()" aria-label="Courriel, double-cliquer pour ouvrir">
+                <span class="mail-icon-art" aria-hidden="true">✉</span><strong>Courriel</strong>
+              </button>
+              @if (validationOpen()) {
+                <div class="mail-window validation-window" role="group" aria-label="Validation du compte"
+                  [style.left.px]="mailWindowPositions().validation.x" [style.top.px]="mailWindowPositions().validation.y"
+                  [style.zIndex]="mailWindowFront() === 'validation' ? 6 : 4" (pointerdown)="bringMailWindowToFront('validation')">
+                  <div class="advanced-window-bar" (pointerdown)="mailWindowDragStart($event, 'validation')"
+                    (pointermove)="mailWindowDragMove($event)" (pointerup)="mailWindowDragEnd($event)" (pointercancel)="mailWindowDragEnd($event)"><strong>Validation du compte</strong>
+                    <button type="button" (click)="closeValidation()" aria-label="Fermer la validation" title="Fermer">×</button>
+                  </div>
+                  <div class="mail-window-body" (mouseup)="captureMailSelection()"
+                    (contextmenu)="showValidationContextMenu($event)"><p>Pour continuer, insère le code de validation envoyé à ton courriel.</p>
+                    <label>Code de validation
+                      <input [value]="pastedCode()" (input)="updateValidationCode($event)" placeholder="Saisir le code ici" aria-label="Code de validation"
+                        />
+                    </label>
+                    <div class="mail-validation-actions">
+                      <button type="button" class="primary" (click)="continueValidation()">Continuer</button>
+                    </div>
+                  </div>
+                </div>
+              }
+              @if (mailOpen()) {
+                <div class="mail-window email-window" role="group" aria-label="Courriel reçu"
+                  [style.left.px]="mailWindowPositions().email.x" [style.top.px]="mailWindowPositions().email.y"
+                  [style.zIndex]="mailWindowFront() === 'email' ? 6 : 4" (pointerdown)="bringMailWindowToFront('email')">
+                  <div class="advanced-window-bar" (pointerdown)="mailWindowDragStart($event, 'email')"
+                    (pointermove)="mailWindowDragMove($event)" (pointerup)="mailWindowDragEnd($event)" (pointercancel)="mailWindowDragEnd($event)"><strong>Boîte de réception</strong>
+                    <button type="button" (click)="closeMail()" aria-label="Fermer le courriel" title="Fermer">×</button>
+                  </div>
+                  <div class="mail-window-body" (mouseup)="captureMailSelection()"
+                    (contextmenu)="showMailContextMenu($event, 'email')">
+                    <p><strong>De :</strong> validation@exemple.ca</p>
+                    <p><strong>Objet :</strong> Votre demande de validation</p>
+                    <p>Bonjour, nous avons reçu votre demande. Voici le code à utiliser pour confirmer votre adresse courriel :</p>
+                    <span class="mail-code" [class.selected]="mailCodeSelected()"
+                      (mouseup)="captureMailSelection()"
+                      aria-label="Code de validation 482731, sélectionner avec la souris puis clic droit pour copier">482731</span>
+                    <p>Si vous n’avez pas demandé ce code, vous pouvez ignorer ce message.</p>
+                  </div>
+                </div>
+              }
+              @if (mailContextMenu(); as menu) {
+                <div class="popup-menu mail-context-menu" [style.left.px]="menu.x" [style.top.px]="menu.y">
+                    <button type="button" [disabled]="mailActionDisabled(menu.target, 'Couper')" (click)="mailContextAction('Couper')">Couper</button>
+                    <button type="button" [disabled]="mailActionDisabled(menu.target, 'Copier')" (click)="mailContextAction('Copier')">Copier</button>
+                    <button type="button" [disabled]="mailActionDisabled(menu.target, 'Coller')" (click)="mailContextAction('Coller')">Coller</button>
+                </div>
+              }
+              <div class="desktop-taskbar" aria-hidden="true"><span class="desktop-launcher"><span></span><span></span><span></span><span></span></span>
+                <span class="desktop-status"><span>{{ desktopTime }}</span></span></div>
+            </div></div>
+          </div>
+        </div>
+        <dialog #hintsDialog id="mail-hints-dialog" class="hints-dialog" aria-labelledby="mail-hints-title">
+          <div class="hints-header"><h2 id="mail-hints-title">Indices</h2>
+            <button type="button" class="hints-close" title="Fermer les indices" aria-label="Fermer les indices" (click)="closeHints()">×</button>
+          </div>
+          <div class="hints-body"><ul>
+            <li>Double-clique pour ouvrir un objet.</li>
+            <li>Fais glisser la souris sur le texte pour le sélectionner.</li>
+            <li>Le menu contextuel présente les commandes possibles pour l’objet pointé par la souris, comme un texte sélectionné ou une boîte d’édition.</li>
+            <li>Clique sur « Continuer » pour terminer l’exercice.</li>
+          </ul></div>
+          <div class="hints-actions"><button type="button" class="primary" (click)="closeHints()">Fermer</button></div>
+        </dialog>
       } @else {
-        <div class="exercise">
+        <div class="exercise" [class.locked]="exerciseLocked()"
+          [attr.inert]="exerciseLocked() ? '' : null" [attr.aria-disabled]="exerciseLocked()">
           @switch (sectionIndex()) {
             @case (0) {
               <h2>Réaliser ces trois instructions pour passer à la section suivante.</h2>
@@ -122,14 +278,26 @@
               </div>
             }
           }
-          <p class="feedback" [class.success]="isDone()" role="status">{{ feedback() }}</p>
-          <button class="secondary restart" (click)="resetExercise()">Recommencer l’exercice</button>
         </div>
+      }
+      @if (stage() === 'exercise' && feedback()) {
+        <p class="exercise-toast" role="status">{{ feedback() }}</p>
       }
     </section>
 
     @if (stage() !== 'home') { <footer class="actions"><button class="primary" (click)="back()">{{ stage() === 'lesson' && sectionIndex() === 0 ? 'Accueil' : 'Retour' }}</button>
-      @if (stage() !== 'summary' && stage() !== 'placeholder') { <button class="primary" [disabled]="stage() === 'exercise' && !isDone()" (click)="next()">{{ stage() === 'lesson' ? 'Passer à l’exercice' : sectionIndex() === lessons.length - 1 ? 'Voir ma progression' : 'Section suivante' }}</button> }
+      @if (stage() === 'exercise' || stage() === 'advanced' || stage() === 'mail') { <button class="primary" (click)="restartExercise()">Recommencer l’exercice</button> }
+      @if (stage() !== 'summary') { <button class="primary" [disabled]="(stage() === 'exercise' || stage() === 'advanced' || stage() === 'mail') && !isDone()" (click)="next()">{{ stage() === 'lesson' ? 'Passer à l’exercice' : stage() === 'advanced' ? 'Exercice suivant' : stage() === 'mail' ? 'Voir ma progression' : sectionIndex() === lessons.length - 1 ? 'Niveau 2' : 'Section suivante' }}</button> }
     </footer> }
+    <dialog #resultDialog class="result-dialog" [class.failure]="resultKind() === 'failure'" aria-labelledby="result-title" aria-describedby="result-message">
+      <div class="result-header">
+        <h2 id="result-title">{{ resultKind() === 'success' ? 'Exercice réussi' : 'Exercice échoué' }}</h2>
+        <button type="button" class="result-close" title="Fermer le résultat" aria-label="Fermer le résultat" (click)="closeResult()">×</button>
+      </div>
+      <div class="result-body"><span class="result-icon" aria-hidden="true">{{ resultKind() === 'success' ? '✓' : '×' }}</span>
+        <p id="result-message">{{ resultMessage() }}</p>
+      </div>
+      <div class="result-actions"><button type="button" class="primary" (click)="closeResult()">Fermer</button></div>
+    </dialog>
   </main>
 </div>

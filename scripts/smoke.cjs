@@ -39,7 +39,7 @@ app.whenReady().then(() => {
           desktopApi: !!window.sourisDesktop };
       })()`);
       if (result.home !== 'Apprendre à utiliser la souris' || result.lesson !== 'Clic gauche'
-        || result.progress !== '1 / 6 exercices réussis' || !result.nextEnabled || !result.desktopApi) {
+        || result.progress !== '1 / 7 exercices réussis' || !result.nextEnabled || !result.desktopApi) {
         throw new Error(`Parcours inattendu : ${JSON.stringify(result)}`);
       }
       console.log(`Parcours Electron vérifié : ${JSON.stringify(result)}`);
