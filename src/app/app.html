@@ -35,7 +35,7 @@
       @if (stage() === 'home') { <p class="eyebrow">BIENVENUE</p><h1>Apprendre à utiliser la souris</h1> }
       @else if (stage() === 'summary') { <p class="eyebrow">MA PROGRESSION</p><h1>Bravo pour ton parcours !</h1> }
       @else if (stage() === 'advanced') { <p class="eyebrow">Niveau 2 · Section 1 sur 2 · Exercice</p><h1>La corbeille</h1> }
-      @else if (stage() === 'mail') { <p class="eyebrow">Niveau 2 · Section 2 sur 2 · Exercice</p><h1>Le code par courriel</h1> }
+      @else if (stage() === 'mail') { <p class="eyebrow">Niveau 2 · Section 2 sur 2 · Exercice</p><h1>Le code d'activation</h1> }
       @else { <p class="eyebrow">Niveau 1 · Section {{ sectionIndex() + 1 }} sur {{ lessons.length }} · {{ stage() === 'lesson' ? 'Tutoriel' : 'Exercice' }}</p><h1>{{ currentLesson().title }}</h1> }
     </header>
 
@@ -44,7 +44,7 @@
         <div class="home">
           <p>Découvre les gestes de base de la souris avec de petites explications et des exercices. Tu pourras ensuite les utiliser dans Windows ou Linux.</p>
           @if (doneCount() === 0) { <button class="primary big" (click)="start()">Démarrer</button> }
-          @else if (firstIncomplete() >= 0) { <button class="primary big" (click)="goTo(firstIncomplete())">Continuer vers {{ firstIncomplete() === lessons.length ? 'La corbeille' : firstIncomplete() === lessons.length + 1 ? 'Le code par courriel' : lessons[firstIncomplete()].title }}</button> }
+          @else if (firstIncomplete() >= 0) { <button class="primary big" (click)="goTo(firstIncomplete())">Continuer vers {{ firstIncomplete() === lessons.length ? 'La corbeille' : firstIncomplete() === lessons.length + 1 ? "Le code d'activation" : lessons[firstIncomplete()].title }}</button> }
           @if (doneCount() > 0) { <button class="primary big" (click)="restartTutorial()">Recommencer le tutoriel</button> }
           @if (feedback() === 'La progression n’a pas pu être remise à zéro. Réessaie.') { <p class="error" role="alert">{{ feedback() }}</p> }
         </div>
@@ -61,7 +61,7 @@
         <div class="exercise advanced-exercise" [class.locked]="exerciseLocked()"
           [attr.inert]="exerciseLocked() ? '' : null" [attr.aria-disabled]="exerciseLocked()">
           <div class="advanced-instructions">
-            <h2>Le dossier contient des images. Déplace l’image « {{ advancedPhotos[advancedTargetIndex()].name }} » dans la corbeille et vide-la pour la supprimer définitivement.</h2>
+            <h2>Le dossier contient des images. Déplace l’image « {{ advancedPhotos[advancedTargetIndex()].name }} » dans la corbeille et la vider pour supprimer l’image définitivement.</h2>
             <button type="button" class="hint-button" title="Voir les indices" aria-label="Voir les indices"
               aria-haspopup="dialog" aria-controls="hints-dialog" (click)="openHints()">
               <img src="/assets/help-lightbulb.svg" alt="" /><span>Indices</span>
@@ -139,7 +139,7 @@
       } @else if (stage() === 'mail') {
         <div class="exercise mail-exercise" [class.locked]="exerciseLocked()"
           [attr.inert]="exerciseLocked() ? '' : null" [attr.aria-disabled]="exerciseLocked()">
-          <div class="advanced-instructions"><h2>Un code d’activation est nécessaire pour continuer. Retrouve-le dans le courriel, puis copie-le et colle-le avec les fonctions de la souris.</h2>
+          <div class="advanced-instructions"><h2>Un code d’activation est nécessaire pour continuer. Retrouve-le dans le courriel, le copier et le coller avec les fonctions de la souris.</h2>
             <button type="button" class="hint-button" title="Voir les indices" aria-label="Voir les indices"
               aria-haspopup="dialog" aria-controls="mail-hints-dialog" (click)="openHints()">
               <img src="/assets/help-lightbulb.svg" alt="" /><span>Indices</span>
@@ -221,7 +221,7 @@
           @switch (sectionIndex()) {
             @case (0) {
               <h2>Réaliser ces trois instructions pour passer à la section suivante.</h2>
-              <ol class="instructions"><li>Clique une fois sur le bouton « Lecture ».</li><li>Choisis « Cappuccino » dans la liste des cafés.</li><li>Ouvre le menu « Fichier », puis clique sur « Imprimer ».</li></ol>
+              <ol class="instructions"><li>Clique une fois sur le bouton « Lecture ».</li><li>Choisis « Cappuccino » dans la liste des cafés.</li><li>Ouvre le menu « Fichier », puis sélectionne « Imprimer ».</li></ol>
               <div class="exercise-scene first-scene">
                 <div class="click-action"><button class="primary" (click)="play()">{{ clickPlayed() ? 'Lecture lancée' : 'Lecture' }}</button></div>
                 <div class="coffee"><div class="coffee-title">Nos cafés disponibles ce matin</div>

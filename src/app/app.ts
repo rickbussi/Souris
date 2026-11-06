@@ -62,7 +62,7 @@ export class App implements OnDestroy {
     { number: 1 as const, entries: lessons.map((lesson, index) => ({ title: lesson.title, index, completable: true })) },
     { number: 2 as const, entries: [
       { title: 'La corbeille', index: lessons.length, completable: true },
-      { title: 'Le code par courriel', index: mailExerciseIndex, completable: true }
+      { title: "Le code d'activation", index: mailExerciseIndex, completable: true }
     ] }
   ];
   readonly stage = signal<Stage>('home');
@@ -120,6 +120,7 @@ export class App implements OnDestroy {
   readonly clipboardCopyMethod = signal<'none' | 'mouse' | 'keyboard'>('none');
   readonly lastPasteMethod = signal<'none' | 'mouse' | 'keyboard'>('none');
   readonly lastPasteCopyMethod = signal<'none' | 'mouse' | 'keyboard'>('none');
+  readonly keyboardEditedCode = signal(false);
   readonly selectedMailText = signal('');
   readonly copiedMailText = signal('');
   readonly pastedCode = signal('');
@@ -264,6 +265,7 @@ export class App implements OnDestroy {
     this.clipboardCopyMethod.set('none');
     this.lastPasteMethod.set('none');
     this.lastPasteCopyMethod.set('none');
+    this.keyboardEditedCode.set(false);
     this.selectedMailText.set('');
     this.copiedMailText.set('');
     this.pastedCode.set('');
@@ -514,6 +516,7 @@ export class App implements OnDestroy {
         this.lastPasteMethod.set('mouse');
         this.lastPasteCopyMethod.set(this.clipboardCopyMethod());
         this.mailPastedWithMouse.set(this.mailCopied() && this.clipboardCopyMethod() === 'mouse' && inserted.trim() === '482731');
+        if (this.mailPastedWithMouse()) this.keyboardEditedCode.set(false);
         const cursor = start + inserted.length;
         this.validationSelection.set({ start: cursor, end: cursor });
       }
@@ -524,7 +527,7 @@ export class App implements OnDestroy {
   }
   continueValidation(): void {
     if (this.exerciseLocked()) return;
-    if (this.lastPasteMethod() === 'keyboard' || this.lastPasteCopyMethod() === 'keyboard') {
+    if (this.lastPasteMethod() === 'keyboard' || this.lastPasteCopyMethod() === 'keyboard' || this.keyboardEditedCode()) {
       this.failExercise('Erreur : le clavier a été utilisé. Le but de cet exercice est d’utiliser seulement la souris.');
     } else if (this.pastedCode() === '482731' && this.mailPastedWithMouse())
       void this.complete('Bravo ! Tu as copié le code du courriel et tu l’as collé dans la fenêtre de validation.');
@@ -588,11 +591,16 @@ export class App implements OnDestroy {
   }
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
-    if (this.stage() !== 'mail' || (!event.ctrlKey && !event.metaKey)) return;
-    const key = event.key.toLowerCase();
-    if (!['c', 'x', 'v'].includes(key)) return;
+    if (this.stage() !== 'mail') return;
     const target = event.target instanceof HTMLElement ? event.target : null;
     const input = target instanceof HTMLInputElement && target.closest('.mail-exercise') ? target : null;
+    if (input && !event.ctrlKey && !event.metaKey
+      && (event.key.length === 1 || event.key === 'Backspace' || event.key === 'Delete')) {
+      this.keyboardEditedCode.set(true);
+    }
+    if (!event.ctrlKey && !event.metaKey) return;
+    const key = event.key.toLowerCase();
+    if (!['c', 'x', 'v'].includes(key)) return;
     const selection = window.getSelection();
     const selectedWindow = selection?.anchorNode instanceof Element
       ? selection.anchorNode.closest('.mail-window')
