@@ -19,7 +19,7 @@ import { Component, Input } from '@angular/core';
       <path d="M 31 42 L 41 179 Q 42 185 47 187 H 55 L 41 42 Z" fill="#acd5f1" opacity=".55" />
       <path d="M 119 42 L 108 187 H 113 Q 118 187 119 179 L 129 42 Z" fill="#acd5f1" opacity=".55" />
       <text x="80" y="164" text-anchor="middle" font-family="Segoe UI Symbol, sans-serif"
-        font-size="51" fill="#2679bb" opacity=".55">♻</text>
+        fill="#2679bb" opacity=".55">♻</text>
       <path d="M 25 24 H 135 Q 143 24 143 32 L 141 40 Q 140 47 133 47 H 27
         Q 20 47 19 40 L 17 32 Q 17 24 25 24 Z" fill="#849ba7" />
       <path d="M 39 179 H 121 L 120 187 Q 119 196 110 196 H 50 Q 41 196 40 187 Z"

@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, signal } from '@angular/core';
 import { lessons } from './lessons';
 import { FolderArt } from './folder-art';
 import { TrashArt } from './trash-art';
@@ -52,7 +52,8 @@ function lessonBlocks(markdown: string): { list: boolean; html: string }[] {
 }
 
 @Component({ selector: 'app-root', imports: [FolderArt, TrashArt], templateUrl: './app.html' })
-export class App implements OnDestroy {
+export class App implements AfterViewInit, OnDestroy {
+  @ViewChild('shell') shellElement?: ElementRef<HTMLElement>;
   @ViewChild('hintsDialog') hintsDialog?: ElementRef<HTMLDialogElement>;
   @ViewChild('resultDialog') resultDialog?: ElementRef<HTMLDialogElement>;
   readonly lessons = lessons;
@@ -131,9 +132,32 @@ export class App implements OnDestroy {
   private advancedPointer?: { pointerId: number; index: number; offsetX: number; offsetY: number };
   private mailWindowDrag?: { pointerId: number; window: 'validation' | 'email'; offsetX: number; offsetY: number };
   private previousPage: { stage: Stage; sectionIndex: number } = { stage: 'home', sectionIndex: 0 };
+  private fontResizeObserver?: ResizeObserver;
 
-  constructor() { this.loadProgress(); this.resetExercise(); }
-  ngOnDestroy(): void { this.clearHoverTimer(); this.clearFolderSuccessTimer(); }
+  constructor(private readonly hostElement: ElementRef<HTMLElement>) { this.loadProgress(); this.resetExercise(); }
+  ngAfterViewInit(): void {
+    const sidebar = this.shellElement?.nativeElement.querySelector<HTMLElement>('.sidebar');
+    const measure = document.createElement('canvas').getContext('2d');
+    if (!sidebar || !measure) return;
+    const updateFontSize = () => {
+      const fontFamily = getComputedStyle(sidebar).fontFamily;
+      measure.font = `10px ${fontFamily}`;
+      const referenceWidth = measure.measureText('Text reference').width;
+      const sidebarWidth = sidebar.getBoundingClientRect().width;
+      if (!referenceWidth || !sidebarWidth) return;
+      const fontSize = Math.max(8, sidebarWidth * 0.5 * 10 / referenceWidth);
+      this.hostElement.nativeElement.style.setProperty('--ui-reference-font-size', `${fontSize}px`);
+    };
+    updateFontSize();
+    void document.fonts.ready.then(updateFontSize);
+    this.fontResizeObserver = new ResizeObserver(updateFontSize);
+    this.fontResizeObserver.observe(sidebar);
+  }
+  ngOnDestroy(): void {
+    this.fontResizeObserver?.disconnect();
+    this.clearHoverTimer();
+    this.clearFolderSuccessTimer();
+  }
 
   private async loadProgress(): Promise<void> {
     let progress: Progress;

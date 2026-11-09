@@ -37,7 +37,7 @@ import { Component, Input } from '@angular/core';
           stroke="#FFE88D" stroke-width="2.5" opacity=".8" stroke-linecap="round" />
       </g>
       @if (!compact) {
-        <text x="260" y="304" text-anchor="middle" fill="#17345C" font-size="21" font-weight="600">Images</text>
+        <text x="260" y="304" text-anchor="middle" fill="#17345C" font-weight="600">Images</text>
       }
     </svg>
   `

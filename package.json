@@ -13,7 +13,7 @@
     "test": "ng test",
     "desktop": "npm run build && electron .",
     "dist:win": "npm run build && electron-builder --win nsis",
-    "dist:linux": "npm run build && electron-builder --linux AppImage",
+    "dist:linux": "npm run build && electron-builder --linux tar.gz",
     "smoke:desktop": "npm run build && electron scripts/smoke.cjs"
   },
   "private": true,
@@ -43,10 +43,14 @@
     "productName": "Souris",
     "directories": { "output": "release" },
     "files": ["dist/souris-web/browser/**/*", "electron/**/*", "build/icons/**/*", "package.json"],
+    "extraFiles": [
+      { "from": "scripts/install-linux.sh", "to": "install.sh" },
+      { "from": "public/assets/souris-icon.png", "to": "souris-icon.png" }
+    ],
     "win": { "target": "nsis", "icon": "public/assets/souris.ico" },
     "linux": {
-      "target": "AppImage",
-      "icon": "build/icons",
+      "target": "tar.gz",
+      "icon": "public/assets/souris-icon.png",
       "category": "Education"
     }
   }

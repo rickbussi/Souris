@@ -5,7 +5,7 @@ Souris apprend les gestes de la souris avec six leçons et six exercices au nive
 ## Prérequis
 
 - Node.js et npm compatibles avec la version d'Angular déclarée dans [`package.json`](package.json).
-- Pour produire les installateurs, exécuter la commande Windows sur Windows et la commande Linux sur Linux.
+- L'installateur Windows se construit sur Windows. L'archive Linux `tar.gz` se construit depuis Windows ou Linux.
 
 Toutes les commandes ci-dessous se lancent depuis la racine du projet.
 
@@ -45,9 +45,17 @@ npm install
 npm run dist:linux
 ```
 
-Les fichiers produits sont dans `release/` : installateur NSIS pour Windows et AppImage pour Linux. Sur Linux, rendre l'AppImage exécutable avec `chmod +x`, puis la lancer. Pour héberger la version web, lancer `npm.cmd run build` sur Windows ou `npm run build` sur Linux, puis publier le contenu de `dist/souris-web/browser/` à la racine du site.
+L'installateur NSIS pour Windows et l'archive portable Linux `tar.gz` sont générés dans `release/`. Depuis Windows, la commande Linux produit l'archive sans nécessiter une machine Linux. Copiez l'archive sur Linux, extrayez-la, puis lancez le script d'installation :
 
-Le workflow GitHub Actions `Applications de bureau` peut être déclenché manuellement pour obtenir les deux fichiers en artefacts, chacun construit sur son système cible.
+```bash
+tar -xzf souris-1.0.0.tar.gz
+cd souris-1.0.0
+bash install.sh
+```
+
+Le script installe Souris dans `~/.local/opt/souris`, ajoute l'application au menu et crée un raccourci sur le bureau pour l'utilisateur courant. Pour héberger la version web, lancer `npm.cmd run build` sur Windows ou `npm run build` sur Linux, puis publier le contenu de `dist/souris-web/browser/` à la racine du site.
+
+Le workflow GitHub Actions `Applications de bureau` peut être déclenché manuellement pour obtenir les deux paquets en artefacts. Il construit l'installateur Windows sur Windows et l'archive Linux sur Linux.
 
 ## Contenu
 

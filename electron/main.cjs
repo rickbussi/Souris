@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, net, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, net, protocol } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -6,6 +6,9 @@ const { pathToFileURL } = require('node:url');
 protocol.registerSchemesAsPrivileged([{ scheme: 'souris', privileges: {
   standard: true, secure: true, supportFetchAPI: true, stream: true
 } }]);
+
+// Ignore the Linux desktop's device scale; the UI applies its own column-based text sizing.
+if (process.platform === 'linux') app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
 let mainWindow;
 const appRoot = path.join(__dirname, '..', 'dist', 'souris-web', 'browser');
@@ -52,6 +55,7 @@ function trusted(event) {
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   protocol.handle('souris', async (request) => {
     const url = new URL(request.url);
     if (url.host !== 'app') return new Response('Not found', { status: 404 });
@@ -68,7 +72,7 @@ app.whenReady().then(() => {
     && validIndices(progress.completed) && validIndices(progress.failed)
     ? saveProgress(normalizeProgress(progress)) : false);
   mainWindow = new BrowserWindow({
-    width: 1180, height: 780, minWidth: 560, minHeight: 460,
+    width: 1180, height: 780, minWidth: 640, minHeight: 650,
     show: process.env.SOURIS_SMOKE !== '1',
     title: 'Souris — apprendre la souris',
     icon: path.join(__dirname, '..', 'build', 'icons', '256x256.png'),

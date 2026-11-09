@@ -1,4 +1,4 @@
-<div class="shell">
+<div class="shell" #shell>
   <aside class="sidebar">
     <div class="progress" aria-live="polite"><strong>{{ doneCount() }} / {{ totalExercises }} exercices réussis</strong></div>
     <nav aria-label="Niveaux et sections du tutoriel">
@@ -149,7 +149,10 @@
             <div class="advanced-viewport"><div class="advanced-desktop mail-desktop"
               (pointermove)="mailWindowDragMove($event)" (pointerup)="mailWindowDragEnd($event)" (pointercancel)="mailWindowDragEnd($event)">
               <button type="button" class="mail-icon" (dblclick)="openMail()" aria-label="Courriel, double-cliquer pour ouvrir">
-                <span class="mail-icon-art" aria-hidden="true">✉</span><strong>Courriel</strong>
+                <span class="mail-icon-art" aria-hidden="true"><svg viewBox="0 0 48 36" focusable="false">
+                  <rect x="2" y="3" width="44" height="30" rx="2" />
+                  <path d="M3 5 24 21 45 5M3 32l15-13m27 13L30 19" />
+                </svg></span><strong>Courriel</strong>
               </button>
               @if (validationOpen()) {
                 <div class="mail-window validation-window" role="group" aria-label="Validation du compte"
